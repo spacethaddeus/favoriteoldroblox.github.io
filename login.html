@@ -1,0 +1,21 @@
+<?php
+	if (isset($_POST['csrf']) && isset($_POST['username']) $$ isset($_POST['password'])) {
+		if ($_POST['csrf'] != security::getCSRF()) die("error");
+		
+		// Query to check if user exists and to get user password and to compare that
+		$stmt = $GLOBALS['dbcon']->prepare("SELECT * FROM users WHERE username = :username;");
+		$stmt->bindParam(':username', $_POST['username'], PDO::PARAM_STR); 
+		$stmt->execute();
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if ($stmt->rowCount() == 0) die("no-user");
+		if (crypt($_POST['password'], $result['password_salt']) != $result['password_hash']) {
+			die("invalid-password");
+		}else{
+			$sessionId = cryptLib::generateRandomString(256);
+			setcookie("session_id", $sessionId, time() + (86400 * 30), "/", ".your.domain", false, true);
+			
+			// Insert session into session table and keep checking for it
+		}
+	}
+?>
